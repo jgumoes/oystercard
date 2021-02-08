@@ -7,6 +7,7 @@ describe Oystercard do
   before (:each) do
     allow(waterloo).to receive(:ID?).and_return(:WATERLOO)
     subject.instance_variable_set(:@balance, MINIMUM_FARE + 1)
+    subject.instance_variable_set(:@history, [{station_in:'a',station_out:nil}])
   end
 
   it 'oystercard can be topped up' do
@@ -21,13 +22,13 @@ describe Oystercard do
 
   it 'oystercard can touch out' do
     subject.instance_variable_set(:@in_journey, true)
-    expect(subject.touch_out).to eq "Touched out"
+    expect(subject.touch_out(waterloo.ID?)).to eq "Touched out"
     expect(subject.in_journey?).to eq false
   end
 
   it 'oystercard balance should reduce by minimum fare' do
     subject.instance_variable_set(:@in_journey, true)
-    expect { subject.touch_out }.to change{subject.balance}.by(-MINIMUM_FARE)
+    expect { subject.touch_out(waterloo.ID?) }.to change{subject.balance}.by(-MINIMUM_FARE)
   end
 
   context "oystercard starts with no money" do
@@ -57,8 +58,20 @@ describe Oystercard do
     end
 
     it "forgets the entry station after touching out" do
-      subject.touch_out
+      subject.touch_out(waterloo.ID?)
       expect(subject.entry_station).to eq nil
+    end
+
+    it 'should print journey history' do
+      subject = Oystercard.new()
+      subject.top_up(10)
+      stations = [{station_in:'a', station_out:'b'},{station_in:'c', station_out:'d'}]
+      stations.each { |s| subject.touch_in(s[:station_in]); subject.touch_out(s[:station_out])}
+      expect(subject.history).to eq(stations)
+    end
+
+    it 'new instance of oystercard shoud have no history' do
+      expect(Oystercard.new().history).to eq []
     end
 
   end
