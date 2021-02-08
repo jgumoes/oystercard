@@ -17,4 +17,9 @@ describe Oystercard do
     expect { subject.top_up(1) }.to raise_error "Reached Limit of #{limit}"
   end
 
+  it "money can be deducted from oystercard" do
+    subject.instance_variable_set(:@balance, 20)
+    subject.deduct(1.60)
+    expect(subject.balance).to eq 20 - 1.6
+  end
 end
