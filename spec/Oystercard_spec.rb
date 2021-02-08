@@ -1,7 +1,9 @@
 require "Oystercard.rb"
 
 describe Oystercard do
-
+  MINIMUM_FUNDS = Oystercard::MINIMUM_FUNDS
+  limit = Oystercard::BALANCE_LIMIT
+  
   it 'new instance of oystercard shoud have balance 0' do
     expect(subject.balance).to eq 0
   end
@@ -12,7 +14,6 @@ describe Oystercard do
   end
 
   it "oystercard can't be topped up above the limit" do
-    limit = Oystercard::BALANCE_LIMIT
     subject.top_up(limit)
     expect { subject.top_up(1) }.to raise_error "Reached Limit of #{limit}"
   end
@@ -24,6 +25,7 @@ describe Oystercard do
   end
 
   it 'oystercard can touch in' do
+    subject.instance_variable_set(:@balance, MINIMUM_FUNDS + 10)
     expect(subject.in_journey?).to eq false
     expect(subject.touch_in).to eq "Touched in"
     expect(subject.in_journey?).to eq true
@@ -35,4 +37,7 @@ describe Oystercard do
     expect(subject.in_journey?).to eq false
   end
 
+  it "oystercard can't touch in with insufficient funds" do
+    expect { subject.touch_in }.to raise_error "Insufficient funds"
+  end
 end
