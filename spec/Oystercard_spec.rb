@@ -22,4 +22,17 @@ describe Oystercard do
     subject.deduct(1.60)
     expect(subject.balance).to eq 20 - 1.6
   end
+
+  it 'oystercard can touch in' do
+    expect(subject.in_journey?).to eq false
+    expect(subject.touch_in).to eq "Touched in"
+    expect(subject.in_journey?).to eq true
+  end
+
+  it 'oystercard can touch out' do
+    subject.instance_variable_set(:@in_journey, true)
+    expect(subject.touch_out).to eq "Touched out"
+    expect(subject.in_journey?).to eq false
+  end
+
 end
