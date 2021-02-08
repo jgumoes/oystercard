@@ -1,9 +1,9 @@
 require "Oystercard.rb"
 
 describe Oystercard do
-  MINIMUM_FUNDS = Oystercard::MINIMUM_FUNDS
+  MINIMUM_FARE = Oystercard::MINIMUM_FARE
   limit = Oystercard::BALANCE_LIMIT
-  
+
   it 'new instance of oystercard shoud have balance 0' do
     expect(subject.balance).to eq 0
   end
@@ -18,14 +18,14 @@ describe Oystercard do
     expect { subject.top_up(1) }.to raise_error "Reached Limit of #{limit}"
   end
 
-  it "money can be deducted from oystercard" do
-    subject.instance_variable_set(:@balance, 20)
-    subject.deduct(1.60)
-    expect(subject.balance).to eq 20 - 1.6
-  end
+  # it "money can be deducted from oystercard" do
+  #   subject.instance_variable_set(:@balance, 20)
+  #   subject.send(:deduct, 1.60)
+  #   expect(subject.balance).to eq 20 - 1.6
+  # end
 
   it 'oystercard can touch in' do
-    subject.instance_variable_set(:@balance, MINIMUM_FUNDS + 10)
+    subject.instance_variable_set(:@balance, MINIMUM_FARE + 10)
     expect(subject.in_journey?).to eq false
     expect(subject.touch_in).to eq "Touched in"
     expect(subject.in_journey?).to eq true
@@ -40,4 +40,11 @@ describe Oystercard do
   it "oystercard can't touch in with insufficient funds" do
     expect { subject.touch_in }.to raise_error "Insufficient funds"
   end
+
+  it 'oystercard balance should reduce by minimum fare' do
+    subject.instance_variable_set(:@balance, MINIMUM_FARE + 10)
+    subject.instance_variable_set(:@in_journey, true)
+    expect { subject.touch_out }.to change{subject.balance}.by(-MINIMUM_FARE)
+  end
+
 end
