@@ -22,7 +22,7 @@ class Oystercard
 
   def touch_in station_id
     raise "Insufficient funds" if @balance < MINIMUM_FARE
-    @history << {station_in: station_id, station_out:nil}
+    @history << {station_in: station_id, station_out: nil}
     @entry_station = station_id
     "Touched in"
   end
