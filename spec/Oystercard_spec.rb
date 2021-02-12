@@ -1,12 +1,17 @@
 require "Oystercard.rb"
+require "journey.rb"
+# I've decided to import journey.rb instead of dependancy injection, because
+# issues with the journey class should be caught in journey_spec.rb.
+# This file should therefore check that the two classes play nicely with eachother
 
 describe Oystercard do
   MINIMUM_FARE = Oystercard::MINIMUM_FARE
   limit = Oystercard::BALANCE_LIMIT
   let(:waterloo) { double :station }
+  let(:station) { double :station, zone: 1 }
   before (:each) do
     allow(waterloo).to receive(:ID?).and_return(:WATERLOO)
-    subject.instance_variable_set(:@balance, MINIMUM_FARE + 1)
+    subject.instance_variable_set(:@balance, MINIMUM_FARE + 10)   # should this number be replaced with a variable?
     subject.instance_variable_set(:@history, [{station_in:'a',station_out:nil}])
   end
 
@@ -18,22 +23,36 @@ describe Oystercard do
     expect { subject.top_up(3.50) }.to change {subject.balance}.by(3.50)
   end
 
-  it 'oystercard can touch in' do
+  context "touching in:" do
+    it 'oystercard can touch in' do
     expect(subject.in_journey?).to eq false
-    expect(subject.touch_in(waterloo.ID?)).to eq "Touched in"
+    expect(subject.touch_in(waterloo)).to eq "Touched in"
     expect(subject.in_journey?).to eq true
+    end
   end
 
-  it 'oystercard can touch out' do
-    subject.instance_variable_set(:@in_journey, true)
-    expect(subject.touch_out(waterloo.ID?)).to eq "Touched out"
-    expect(subject.in_journey?).to eq false
-  end
+  context "touching out" do
 
-  it 'oystercard balance should reduce by minimum fare' do
-    subject.instance_variable_set(:@in_journey, true)
-    subject.touch_in(:waterloo)
-    expect { subject.touch_out(waterloo.ID?) }.to change{subject.balance}.by(-MINIMUM_FARE)
+    context "after touching in:" do
+      before (:each) do
+        subject.touch_in(station)
+      end
+
+      it 'oystercard can touch out' do
+        expect(subject.touch_out(waterloo)).to eq "Touched out"
+        expect(subject.in_journey?).to eq false
+      end
+
+      it 'oystercard balance should reduce by minimum fare' do
+        expect { subject.touch_out(waterloo) }.to change{subject.balance}.by(-MINIMUM_FARE)
+      end
+    end
+
+    context "without touching in:" do
+      it "oystercard balance should reduce by penalty fare" do
+        expect { subject.touch_out(waterloo) }.to change{subject.balance}.by(-Journey::PENALTY_FARE)
+      end
+    end
   end
 
   context "oystercard starts with no money" do

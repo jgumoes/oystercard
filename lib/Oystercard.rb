@@ -35,7 +35,6 @@ class Oystercard
     end
     @current_journey.finish(exit_station)
     deduct @current_journey.fare
-    @current_journey.complete?
     "Touched out"
   end
 
